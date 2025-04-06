@@ -1,15 +1,15 @@
-# RoseGoldGallery-with-Zustand-Nextjs-MaterialUi
+# RoseGoldGallery 
  
 
 
 
 
-- 📽[Demo Project](https://rosegoldgallery.vercel.app/)📽
+- 📽[Demo Project](https://rose-gold-gallery.vercel.app/)📽
 - 👩‍💻Developed by Saba Asgarian👩‍💻
 
-- ✍Created - 2024-09-11✍
+- ✍Created - 2025-04-06✍
 
-- 💻Technologies Used - Html , Css , Nextjs, Materialui , React , Zustand 💻
+- 💻Technologies Used - Html , Css , Nextjs, Materialui , React , Zustand , MongoDb , Express.js 💻
 
 - Hooks Used : useState 
 
