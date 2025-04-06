@@ -11,7 +11,7 @@
 
 - 💻Technologies Used - Html , Css , Nextjs, Materialui , React , Zustand , MongoDb , Express.js 💻
 
-- Hooks Used : useState 
+- Hooks Used : useState , Context Api
 
 - Role - Frontend
 
