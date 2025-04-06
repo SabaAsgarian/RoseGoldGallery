@@ -6,7 +6,7 @@
 
 
 - 📽[Demo Project](https://rose-gold-gallery.vercel.app/)📽
-- 👩‍💻Developed by Saba Asgarian👩‍💻
+- 👩‍💻Developed by Saba Asgarian 👩‍💻
 
 - ✍Created - 2025-04-06✍
 - 
