@@ -10,59 +10,73 @@ import productRoutes from "./routes/productRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import User from "./models/User.js";
-import orderRoutes from './routes/orderRoutes.js'
+import orderRoutes from './routes/orderRoutes.js';
 import userRoutes from "./routes/userRoutes.js";
+
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Middleware Setup
+// ✅ داینامیک و امن کردن CORS
+const whitelist = [
+  'https://rosegoldgalleryy.vercel.app',
+  'https://rose-gold-gallery.vercel.app',
+  'https://rose-gold-gallery-nhbbnv04y-sabas-projects-edc52f08.vercel.app',
+  'https://rose-gold-gallery-sabas-projects-edc52f08.vercel.app',
+  'http://localhost:3000'
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || whitelist.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`🚫 Not allowed by CORS: ${origin}`));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
+};
+
+app.use(cors(corsOptions));
+
+// 📦 Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use("/uploads", express.static("uploads"));
-app.use(cors({
-  origin: [
-    'https://rosegoldgalleryy.vercel.app',
-    'http://localhost:3000' // for local development
-  ],
-  credentials: true
-}));
 
-// Routes Setup
+// 📦 Routes
 app.use("/api", productRoutes);
 app.use("/api", authRoutes);
 app.use("/api/admin", adminRoutes);
-app.use('/api/products', productRoutes);
+app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/user", userRoutes);
-// MongoDB Connection
-// // اتصال به MongoDB
-mongoose.connect(process.env.MONGO_URI)
-     .then(() => console.log("✅ Connected to MongoDB"))
-     .catch((err) => {
-       console.error("❌ MongoDB Connection Error:", err);
-       process.exit(1); // Exit if cannot connect to database
-     });
 
-// Add error handler for MongoDB connection
+// 🌐 MongoDB اتصال
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ Connected to MongoDB"))
+  .catch((err) => {
+    console.error("❌ MongoDB Connection Error:", err);
+    process.exit(1);
+  });
+
 mongoose.connection.on('error', err => {
   console.error('MongoDB connection error:', err);
 });
 
-// Test Server Route
+// 🌐 تست سرور
 app.get("/", (req, res) => {
   res.send("Server is running...");
 });
 
-// File Storage Configuration
+// 📁 File Upload با multer
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Images stored in 'uploads' folder
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname); // Timestamp-based filename
-  },
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname)
 });
 
 const upload = multer({
@@ -72,90 +86,52 @@ const upload = multer({
       return cb(new Error("Only images are allowed!"), false);
     }
     cb(null, true);
-  },
+  }
 });
 
-// **📌 Register a New User**
+// 🧾 Register
 app.post("/api/register", async (req, res) => {
   try {
-    console.log("Received registration request:", req.body);
-
     const { fname, lname, email, mobile, pass, img, city, street, age } = req.body;
 
-    // Validate required fields
     if (!fname || !lname || !email || !mobile || !pass || !city || !street || !age) {
-      console.log("Missing required fields:", { fname, lname, email, mobile, pass, city, street, age });
-      return res.status(400).json({ 
-        error: "All fields are required",
-        missing: Object.entries({ fname, lname, email, mobile, pass, city, street, age })
-          .filter(([_, value]) => !value)
-          .map(([key]) => key)
-      });
+      return res.status(400).json({ error: "All fields are required" });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({
-      $or: [{ email }, { mobile }]
-    });
-
+    const existingUser = await User.findOne({ $or: [{ email }, { mobile }] });
     if (existingUser) {
-      console.log("User already exists:", { email, mobile });
       return res.status(400).json({ 
         error: existingUser.email === email ? "Email already exists" : "Mobile number already exists" 
       });
     }
 
-    // Hash password
     const hashedPass = await bcrypt.hash(pass, 10);
 
-    // Create new user
     const newUser = new User({
-      fname,
-      lname,
-      email,
-      mobile,
+      fname, lname, email, mobile,
       pass: hashedPass,
       img: img || '',
-      city,
-      street,
+      city, street,
       age: Number(age),
       role: 'user'
     });
 
-    // Validate the document before saving
     const validationError = newUser.validateSync();
     if (validationError) {
-      console.log("Validation error:", validationError);
-      return res.status(400).json({
-        error: "Validation failed",
-        details: validationError.errors
-      });
+      return res.status(400).json({ error: "Validation failed", details: validationError.errors });
     }
 
     await newUser.save();
-    console.log("User registered successfully:", { email, mobile });
-    
-    res.status(201).json({ 
-      success: true,
-      message: "User registered successfully!" 
-    });
+    res.status(201).json({ success: true, message: "User registered successfully!" });
   } catch (error) {
-    console.error("Registration error:", error);
-    // Send more detailed error information
-    res.status(500).json({ 
-      error: "Registration failed",
-      details: error.message,
-      code: error.code,
-      name: error.name
-    });
+    res.status(500).json({ error: "Registration failed", details: error.message });
   }
 });
 
-// **📌 User Login**
+// 🔐 Login
 app.post("/api/login", async (req, res) => {
   try {
     const { email, pass } = req.body;
-    // اول کاربر رو پیدا میکنیم
     const user = await User.findOne({ email }).select('-__v');
 
     if (!user) return res.status(404).json({ error: "User not found!" });
@@ -164,15 +140,11 @@ app.post("/api/login", async (req, res) => {
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
     const token = jwt.sign(
-      { 
-        id: user._id,
-        role: user.role 
-      }, 
-      process.env.JWT_SECRET, 
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    // همه اطلاعات کاربر رو میفرستیم
     const userData = {
       id: user._id,
       fname: user.fname,
@@ -186,22 +158,16 @@ app.post("/api/login", async (req, res) => {
       img: user.img
     };
 
-    console.log("Sending user data:", userData); // برای دیباگ
-
-    res.json({ 
-      token, 
-      user: userData
-    });
+    res.json({ token, user: userData });
   } catch (error) {
-    console.error("Error during login:", error);
     res.status(500).json({ error: "Login failed" });
   }
 });
 
-// **📌 Authentication Middleware**
+// 🔐 Middleware Auth
 const authMiddleware = (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1]; // Extract token from "Bearer <token>"
+    const token = req.headers.authorization?.split(" ")[1];
     if (!token) return res.status(401).json({ error: "Token missing or malformed" });
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
@@ -210,12 +176,11 @@ const authMiddleware = (req, res, next) => {
       next();
     });
   } catch (error) {
-    console.error("Error in authMiddleware:", error);
     res.status(500).json({ error: "Authentication error" });
   }
 };
 
-// **📌 Admin-Only Access**
+// 🔐 فقط ادمین
 app.get("/api/admin", authMiddleware, (req, res) => {
   if (req.user.status !== "Main Admin") {
     return res.status(403).json({ error: "Access denied. Admin privileges required." });
@@ -223,7 +188,7 @@ app.get("/api/admin", authMiddleware, (req, res) => {
   res.json({ message: "Welcome to Admin Dashboard" });
 });
 
-// Get user profile
+// 👤 Get User Profile
 app.get("/api/login", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-pass');
@@ -232,22 +197,13 @@ app.get("/api/login", authMiddleware, async (req, res) => {
     }
     res.json(user);
   } catch (error) {
-    console.error("خطا در دریافت پروفایل:", error);
     res.status(500).json({ error: "خطا در دریافت اطلاعات کاربر" });
   }
 });
 
-// Start Server
+// ▶️ Start server
 app.listen(port, () => {
   console.log(`🚀 Server is running on http://localhost:${port}`);
 });
 
 export default app;
-
-
-
-
-
-
-
-
