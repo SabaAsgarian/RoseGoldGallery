@@ -1,15 +1,8 @@
 # RoseGoldGallery 
- 
-
-
-
-
-
-- 📽[Demo Project](https://rose-gold-gallery.vercel.app/)📽
+ - 📽[Demo Project](https://rose-gold-gallery.vercel.app/)📽
 - 👩‍💻Developed by Saba Asgarian 👩‍💻
 
 - ✍Created - 2025-04-06✍
-- 
 
 - 💻Technologies Used - Html , Css , Nextjs, Materialui , React , Zustand , MongoDb , Express.js 💻
 
