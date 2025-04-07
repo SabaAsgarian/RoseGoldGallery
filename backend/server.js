@@ -24,6 +24,9 @@ const whitelist = [
   'https://rose-gold-gallery.vercel.app',
   'https://rose-gold-gallery-nhbbnv04y-sabas-projects-edc52f08.vercel.app',
   'https://rose-gold-gallery-sabas-projects-edc52f08.vercel.app',
+  'https://rose-gold-xi.vercel.app',
+  'https://rose-gold-sabas-projects-edc52f08.vercel.app',
+  'https://rose-gold-git-main-sabas-projects-edc52f08.vercel.app',
   'http://localhost:3000'
 ];
 
