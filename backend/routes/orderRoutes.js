@@ -8,18 +8,23 @@ const router = express.Router();
 // **📌 دریافت همه سفارشات (فقط ادمین‌ها)**
 router.get("/all", authMiddleware, async (req, res) => {
   if (req.user.role !== "admin") {
-      return res.status(403).json({ error: "❌ دسترسی غیرمجاز" });
+    return res.status(403).json({ error: "❌ دسترسی غیرمجاز" });
   }
 
   try {
-      const orders = await Order.find().populate("userId", "fname lname email");
-      res.json(orders);
+    // Fetch orders and populate userId fields along with shippingAddress
+    const orders = await Order.find()
+      .populate("userId", "fname lname email") // Include user info
+      .exec(); // Ensure the query executes correctly
+
+    console.log("Orders fetched: ", orders); // Debugging output
+    res.json(orders); // Send the data as response
   } catch (error) {
-      console.error('Error fetching all orders:', error);
-      res.status(500).json({ 
-        error: "❌ دریافت سفارشات ادمین ناموفق بود.",
-        details: error.message 
-      });
+    console.error('Error fetching all orders:', error);
+    res.status(500).json({
+      error: "❌ دریافت سفارشات ادمین ناموفق بود.",
+      details: error.message
+    });
   }
 });
 
@@ -38,31 +43,35 @@ router.get("/:id", authMiddleware, async (req, res) => {
 });
 
 // **📌 ثبت سفارش جدید**
+// **📌 ثبت سفارش جدید**
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { items, totalAmount } = req.body;
+    const { items, totalAmount, shippingAddress } = req.body; // Include shippingAddress in the request body
     const userId = req.user.id;
 
-    // اعتبارسنجی داده‌های ورودی
+    // Validate input data
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'سبد خرید نامعتبر است' });
     }
-
     if (!totalAmount || totalAmount <= 0) {
       return res.status(400).json({ error: 'مبلغ کل نامعتبر است' });
     }
+    if (!shippingAddress || !shippingAddress.city || !shippingAddress.street) {
+      return res.status(400).json({ error: 'آدرس حمل و نقل نامعتبر است' });
+    }
 
-    // ایجاد سفارش جدید
+    // Create new order
     const newOrder = new Order({
       userId,
       items: items.map(item => ({
         id: item.productId,
-        name: item.title,
+        name: item.name, // Ensure name is passed correctly
         quantity: item.quantity,
         price: item.price,
         img: item.img
       })),
       totalAmount,
+      shippingAddress, // Save the shipping address
       status: 'pending',
       trackingCode: Math.random().toString(36).substring(2, 15).toUpperCase()
     });
@@ -75,15 +84,18 @@ router.post("/", authMiddleware, async (req, res) => {
       orderId: newOrder._id,
       trackingCode: newOrder.trackingCode
     });
-
   } catch (error) {
     console.error('Order creation error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'خطا در ثبت سفارش',
-      details: error.message 
+      details: error.message
     });
   }
 });
+
+    
+
+
 
 // **📌 دریافت سفارشات کاربر**
 router.get("/", authMiddleware, async (req, res) => {
@@ -125,16 +137,16 @@ router.put("/:id", authMiddleware, async (req, res) => {
 });
 
 // دریافت سفارش‌های کاربر
-router.get('/user', authMiddleware, async (req, res) => {
-  try {
-    const orders = await Order.find({ userId: req.user.id })
-      .sort({ createdAt: -1 });
-    res.json(orders);
-  } catch (error) {
-    console.error('Error fetching orders:', error);
-    res.status(500).json({ error: 'خطا در دریافت سفارش‌ها' });
-  }
-});
+// router.get('/user', authMiddleware, async (req, res) => {
+//   try {
+//     const orders = await Order.find({ userId: req.user.id })
+//       .sort({ createdAt: -1 });
+//     res.json(orders);
+//   } catch (error) {
+//     console.error('Error fetching orders:', error);
+//     res.status(500).json({ error: 'خطا در دریافت سفارش‌ها' });
+//   }
+// });
 
 // **📌 حذف سفارش (فقط برای ادمین)**
 router.delete("/:id", authMiddleware, async (req, res) => {
