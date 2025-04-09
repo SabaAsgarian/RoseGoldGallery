@@ -47,7 +47,7 @@ router.post('/products', upload.single('img'), async (req, res) => {
         }
 
         const newProduct = new Product({
-            img: req.file.path,
+            img: req.file.filename, // Store only the filename
             title,
             price,
             weight,
