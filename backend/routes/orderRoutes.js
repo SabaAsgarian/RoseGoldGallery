@@ -125,16 +125,16 @@ router.put("/:id", authMiddleware, async (req, res) => {
 });
 
 // دریافت سفارش‌های کاربر
-// router.get('/user', authMiddleware, async (req, res) => {
-//   try {
-//     const orders = await Order.find({ userId: req.user.id })
-//       .sort({ createdAt: -1 });
-//     res.json(orders);
-//   } catch (error) {
-//     console.error('Error fetching orders:', error);
-//     res.status(500).json({ error: 'خطا در دریافت سفارش‌ها' });
-//   }
-// });
+router.get('/user', authMiddleware, async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.user.id })
+      .sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ error: 'خطا در دریافت سفارش‌ها' });
+  }
+});
 
 // **📌 حذف سفارش (فقط برای ادمین)**
 router.delete("/:id", authMiddleware, async (req, res) => {
