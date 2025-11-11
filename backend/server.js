@@ -29,7 +29,9 @@ const whitelist = [
   'https://rose-gold-git-main-sabas-projects-edc52f08.vercel.app',
   'http://localhost:3000',
   'https://rose-gold-galery.vercel.app',
-'rose-gold-gal.vercel.app'
+'rose-gold-gal.vercel.app',
+  'https://rose-gold-gallery-ts.vercel.app/'
+  
 ];
 
 const corsOptions = {
