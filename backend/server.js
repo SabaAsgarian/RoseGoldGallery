@@ -30,8 +30,8 @@ const whitelist = [
   'http://localhost:3000',
   'https://rose-gold-galery.vercel.app',
 'rose-gold-gal.vercel.app',
-  'rose-gold-gallery-ts.vercel.app/',
-  'https://rose-gold-gallery-ts.vercel.app/'
+  'rose-gold-gallery-ts.vercel.app',
+  'https://rose-gold-gallery-ts.vercel.app'
 
   
 ];
